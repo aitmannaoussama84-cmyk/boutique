@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="site-title">Ma Boutique Pro</title>
+    <style id="dynamic-theme">
+        :root {
+            --primary: #2563eb;
+            --dark: #1e293b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+        }
+    </style>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #333; transition: 0.3s; }
+        
+        /* --- HEADER --- */
+        header {
+            background: white; padding: 15px 5%; display: flex; justify-content: space-between;
+            align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .logo { font-weight: bold; font-size: 1.4rem; color: var(--primary); text-transform: uppercase; }
+        .nav-btns { display: flex; gap: 10px; }
+        .btn { border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-admin { background: #4b5563; color: white; }
+        .btn-cart { background: var(--primary); color: white; }
+
+        /* --- CONTENU --- */
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .hero { text-align: center; margin-bottom: 40px; }
+        .hero h1 { font-size: 2.5rem; color: var(--dark); margin-bottom: 5px; }
+        
+        /* --- GRILLE PRODUITS --- */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        .card { background: white; padding: 20px; border-radius: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.3s; border: 1px solid transparent; }
+        .card:hover { border-color: var(--primary); transform: translateY(-5px); }
+        .card img { width: 100%; height: 220px; object-fit: contain; border-radius: 15px; margin-bottom: 15px; background: #fafafa; }
+        .price { font-size: 1.5rem; color: var(--primary); font-weight: bold; margin-bottom: 15px; }
+
+        /* --- PANNEAUX --- */
+        .side-panel {
+            position: fixed; top: 0; width: 360px; height: 100%;
+            background: white; z-index: 1000; transition: 0.4s; padding: 25px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.2); overflow-y: auto; box-sizing: border-box;
+        }
+        #admin-panel { left: -100%; background: #1e293b; color: white; }
+        #admin-panel.open { left: 0; }
+        #cart-panel { right: -100%; }
+        #cart-panel.open { right: 0; }
+
+        /* --- ADMIN STYLE --- */
+        .admin-section { background: #334155; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #475569; }
+        .admin-section h3 { margin-top: 0; font-size: 1rem; color: var(--success); border-bottom: 1px solid #475569; padding-bottom: 5px; }
+        .admin-section label { font-size: 11px; color: #94a3b8; display: block; margin-top: 10px; }
+        .admin-section input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: none; box-sizing: border-box; }
+        .btn-delete { background: var(--danger); color: white; width: 100%; padding: 8px; margin-top: 10px; border: none; border-radius: 6px; cursor: pointer; }
+
+        /* --- PANIER --- */
+        .cart-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .order-form { background: #f8fafc; padding: 15px; border-radius: 12px; margin-top: 20px; border: 1px solid #e2e8f0; }
+        .order-form input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
+        .btn-confirm { background: #25D366; color: white; width: 100%; padding: 16px; font-weight: bold; border-radius: 12px; border: none; cursor: pointer; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo" id="header-logo">MON BRAND</div>
+    <div class="nav-btns">
+        <button class="btn btn-admin" onclick="togglePanel('admin-panel')">⚙️ Admin</button>
+        <button class="btn btn-cart" onclick="togglePanel('cart-panel')">🛒 Panier (<span id="count">0</span>)</button>
+    </div>
+</header>
+
+<div id="admin-panel" class="side-panel">
+    <div id="login-section" style="text-align: center; padding-top: 50px;">
+        <h2>Accès Restreint</h2>
+        <input type="text" id="login-num" placeholder="Numéro" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:none;">
+        <input type="password" id="login-pass" placeholder="Mot de passe" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:none;">
+        <button class="btn" style="background:var(--primary); color:white; width:100%" onclick="checkLogin()">Connexion</button>
+    </div>
+
+    <div id="management-section" style="display: none;">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+            <h2 style="color:var(--success)">Gestion</h2>
+            <button class="btn" onclick="logout()" style="background:var(--danger); color:white; padding:5px 10px">X</button>
+        </div>
+
+        <div class="admin-section">
+            <h3>🎨 Design & Branding</h3>
+            <label>Nom du Brand</label>
+            <input type="text" id="conf-name" oninput="saveBranding()">
+            <label>Slogan Hero</label>
+            <input type="text" id="conf-hero" oninput="saveBranding()">
+            <label>Couleur Thème</label>
+            <input type="color" id="conf-color" style="height:40px" oninput="saveBranding()">
+        </div>
+
+        <div class="admin-section">
+            <h3>📦 Produits</h3>
+            <button class="btn" style="background:var(--primary); color:white; width:100%; margin-bottom:15px" onclick="addProduct()">+ Ajouter un produit</button>
+            <div id="admin-list"></div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="hero">
+        <h1 id="hero-title">Mon Brand</h1>
+        <p id="hero-desc">Qualité Premium & Livraison Rapide</p>
+    </div>
+    <div class="product-grid" id="shop-grid"></div>
+</div>
+
+<div id="cart-panel" class="side-panel">
+    <h2>Mon Panier</h2>
+    <div id="cart-content" style="flex-grow:1"></div>
+    <div id="cart-footer" style="display:none">
+        <h3 style="display:flex; justify-content:space-between">Total: <span id="total-price">0</span> DH</h3>
+        <div class="order-form">
+            <input type="text" id="user-name" placeholder="Nom Complet">
+            <input type="tel" id="user-phone" placeholder="Numéro WhatsApp">
+        </div>
+        <button class="btn-confirm" onclick="submitOrder()">Commander sur WhatsApp</button>
+    </div>
+    <button onclick="togglePanel('cart-panel')" style="width:100%; margin-top:20px; background:none; border:none; color:gray; cursor:pointer;">Retour à la boutique</button>
+</div>
+
+<script>
+    // CONFIGURATION ACCÈS
+    const ADMIN_NUM = "0720508150";
+    const ADMIN_PASS = "123456";
+
+    // APIs
+    const FORMSPREE_URL = "https://formspree.io/f/xzdgjowa";
+    const WHATSAPP_URL = "https://wa.me/message/EUZXVDRSY3QGM1";
+
+    // CHARGEMENT DATA
+    let products = JSON.parse(localStorage.getItem('shop_products')) || [
+        { id: 1, name: "Smart Watch Ultra 2", price: 550, img: "https://via.placeholder.com/220?text=Produit+1" }
+    ];
+    let branding = JSON.parse(localStorage.getItem('shop_branding')) || {
+        name: "AIRPODS MAROC",
+        hero: "Découvrez notre collection exclusive",
+        color: "#2563eb"
+    };
+    let cart = [];
+
+    // --- FONCTIONS LOGIN ---
+    function checkLogin() {
+        if(document.getElementById('login-num').value === ADMIN_NUM && document.getElementById('login-pass').value === ADMIN_PASS) {
+            document.getElementById('login-section').style.display = "none";
+            document.getElementById('management-section').style.display = "block";
+            loadAdminInputs();
+            renderAdmin();
+        } else { alert("Accès refusé"); }
+    }
+    function logout() { location.reload(); }
+
+    // --- FONCTIONS BRANDING ---
+    function loadAdminInputs() {
+        document.getElementById('conf-name').value = branding.name;
+        document.getElementById('conf-hero').value = branding.hero;
+        document.getElementById('conf-color').value = branding.color;
+    }
+    function saveBranding() {
+        branding.name = document.getElementById('conf-name').value;
+        branding.hero = document.getElementById('conf-hero').value;
+        branding.color = document.getElementById('conf-color').value;
+        localStorage.setItem('shop_branding', JSON.stringify(branding));
+        applyBranding();
+    }
+    function applyBranding() {
+        document.getElementById('header-logo').innerText = branding.name;
+        document.getElementById('hero-title').innerText = branding.name;
+        document.getElementById('hero-desc').innerText = branding.hero;
+        document.getElementById('site-title').innerText = branding.name;
+        document.getElementById('dynamic-theme').innerHTML = `:root { --primary: ${branding.color}; --dark: #1e293b; --success: #10b981; --danger: #ef4444; --bg: #f8fafc; }`;
+    }
+
+    // --- FONCTIONS PRODUITS ---
+    function renderShop() {
+        const grid = document.getElementById('shop-grid');
+        grid.innerHTML = products.map(p => `
+            <div class="card">
+                <img src="${p.img}">
+                <h3>${p.name}</h3>
+                <div class="price">${p.price} DH</div>
+                <button class="btn btn-cart" style="width:100%" onclick="addToCart(${p.id})">Acheter maintenant</button>
+            </div>
+        `).join('');
+        localStorage.setItem('shop_products', JSON.stringify(products));
+    }
+    function renderAdmin() {
+        const list = document.getElementById('admin-list');
+        list.innerHTML = products.map((p, i) => `
+            <div class="admin-card admin-section">
+                <label>Nom</label><input type="text" value="${p.name}" oninput="updateProd(${i},'name',this.value)">
+                <label>Prix</label><input type="number" value="${p.price}" oninput="updateProd(${i},'price',this.value)">
+                <label>Lien Image</label><input type="text" value="${p.img}" oninput="updateProd(${i},'img',this.value)">
+                <button class="btn-delete" onclick="deleteProd(${i})">Supprimer</button>
+            </div>
+        `).join('');
+    }
+    function updateProd(i, f, v) { products[i][f] = f==='price'?parseInt(v)||0:v; renderShop(); }
+    function addProduct() { products.push({id:Date.now(), name:"Nouveau", price:0, img:"https://via.placeholder.com/220"}); renderAdmin(); renderShop(); }
+    function deleteProd(i) { if(confirm("Supprimer?")){products.splice(i,1); renderAdmin(); renderShop();}}
+
+    // --- PANIER ---
+    function togglePanel(id) { document.getElementById(id).classList.toggle('open'); }
+    function addToCart(id) {
+        const p = products.find(x => x.id === id);
+        cart.push({...p, cartId: Date.now()});
+        updateCart();
+        if(!document.getElementById('cart-panel').classList.contains('open')) togglePanel('cart-panel');
+    }
+    function updateCart() {
+        document.getElementById('count').innerText = cart.length;
+        const list = document.getElementById('cart-content');
+        if(cart.length === 0) { list.innerHTML = "<p style='text-align:center'>Panier vide</p>"; document.getElementById('cart-footer').style.display="none"; }
+        else {
+            list.innerHTML = cart.map((item, idx) => `<div class="cart-item"><span>${item.name}</span><strong>${item.price} DH <span onclick="removeItem(${idx})" style="color:red;cursor:pointer;margin-left:10px">×</span></strong></div>`).join('');
+            document.getElementById('cart-footer').style.display="block";
+            document.getElementById('total-price').innerText = cart.reduce((t, i) => t + i.price, 0);
+        }
+    }
+    function removeItem(idx) { cart.splice(idx,1); updateCart(); }
+
+    // --- COMMANDE ---
+    async function submitOrder() {
+        const name = document.getElementById('user-name').value;
+        const phone = document.getElementById('user-phone').value;
+        if(!name || !phone) return alert("Veuillez remplir vos informations.");
+        const details = cart.map(i => `${i.name} (${i.price}DH)`).join(', ');
+        const total = document.getElementById('total-price').innerText;
+
+        fetch(FORMSPREE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ Nom: name, Tel: phone, Articles: details, Total: total + " DH" })
+        });
+
+        window.open(`${WHATSAPP_URL}?text=*COMMANDE ${branding.name}*%0A👤 Nom: ${name}%0A📞 Tél: ${phone}%0A📦 Articles: ${details}%0A💰 Total: ${total} DH`);
+    }
+
+    // INITIALISATION
+    applyBranding();
+    renderShop();
+</script>
+</body>
+</html>
